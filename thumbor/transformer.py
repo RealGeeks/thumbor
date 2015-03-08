@@ -10,6 +10,8 @@
 
 import math
 import sys
+import threading
+import tornado
 
 from thumbor.point import FocalPoint
 from thumbor.utils import logger
@@ -182,21 +184,25 @@ class Transformer(object):
         self.do_image_operations()
 
     def do_image_operations(self):
-        self.manual_crop()
-        self.calculate_target_dimensions()
-        self.adjust_focal_points()
+        def inner():
+            self.manual_crop()
+            self.calculate_target_dimensions()
+            self.adjust_focal_points()
 
-        if self.context.request.debug:
-            self.debug()
-        else:
-            if self.context.request.fit_in:
-                self.fit_in_resize()
+            if self.context.request.debug:
+                self.debug()
             else:
-                self.auto_crop()
-                self.resize()
-            self.flip()
+                if self.context.request.fit_in:
+                    self.fit_in_resize()
+                else:
+                    self.auto_crop()
+                    self.resize()
+                self.flip()
 
-        self.done_callback()
+        self.context.thread_pool.submit(inner).add_done_callback(
+            lambda future: tornado.ioloop.IOLoop.instance().add_callback(
+                self.done_callback)
+        )
 
     def manual_crop(self):
         if self.context.request.should_crop:

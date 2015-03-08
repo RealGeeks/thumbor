@@ -74,6 +74,10 @@ Config.define(
     'Indicates whether thumbor should enable blacklist functionality to prevent processing certain images.', 'Imaging')
 
 Config.define(
+    'ENGINE_THREADPOOL_SIZE', 10,
+    'Size of the thread pool used for image transformations.  Increase this if you are seeing your IOLoop getting blocked (often indicated by your upstream HTTP requests timing out)', 'Imaging')
+
+Config.define(
     'LOADER', 'thumbor.loaders.http_loader',
     'The loader thumbor should use to load the original image. This must be the full name of a python module ' +
     '(python must be able to import it)', 'Extensibility')
@@ -114,6 +118,9 @@ Config.define(
 Config.define(
     'HTTP_LOADER_MAX_REDIRECTS', 5,
     'Indicates the number of redirects libcurl should follow when downloading an image', 'HTTP Loader')
+Config.define(
+    'HTTP_LOADER_MAX_CLIENTS', 10,
+    'The maximum number of simultaneous HTTP connections the loader can make before queuing', 'HTTP Loader')
 Config.define(
     'HTTP_LOADER_FORWARD_USER_AGENT', False,
     'Indicates whether thumbor should forward the user agent of the requesting user', 'HTTP Loader')
@@ -225,6 +232,8 @@ Config.define(
 Config.define(
     'OPTIMIZERS', [
         #'thumbor.optimizers.jpegtran',
+        #'thumbor.optimizers.gifsicle',
+        #'thumbor.optimizers.pngcrush',
         # 'thumbor.optimizers.gifv',
     ], 'List of optimizers that thumbor will use to optimize images', 'Optimizers')
 
@@ -233,6 +242,20 @@ Config.define(
     'JPEGTRAN_PATH',
     '/usr/bin/jpegtran',
     'Path for the jpegtran binary',
+    'Optimizers'
+)
+
+Config.define(
+    'GIFSICLE_PATH',
+    '/usr/bin/gifsicle',
+    'Path for the gifsicle binary',
+    'Optimizers'
+)
+
+Config.define(
+    'PNGCRUSH_PATH',
+    '/usr/bin/pngcrush',
+    'Path for the pngcrush binary',
     'Optimizers'
 )
 

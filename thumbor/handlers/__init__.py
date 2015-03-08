@@ -393,7 +393,7 @@ class BaseHandler(tornado.web.RequestHandler):
 
 class ContextHandler(BaseHandler):
     def initialize(self, context):
-        self.context = Context(context.server, context.config, context.modules.importer, self)
+        self.context = Context(context.server, context.config, context.modules.importer, self, context.thread_pool)
 
     def log_exception(self, *exc_info):
         if isinstance(exc_info[1], tornado.web.HTTPError):

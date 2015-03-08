@@ -15,6 +15,7 @@ import socket
 from os.path import expanduser, dirname
 
 import tornado.ioloop
+from concurrent.futures import ThreadPoolExecutor
 from tornado.httpserver import HTTPServer
 
 from thumbor.console import get_server_parameters
@@ -40,7 +41,11 @@ def main(arguments=None):
                     '/etc/',
                     dirname(__file__)]
 
-    config = Config.load(server_parameters.config_path, conf_name='thumbor.conf', lookup_paths=lookup_paths)
+    config = Config.load(
+        server_parameters.config_path,
+        conf_name='thumbor.conf',
+        lookup_paths=lookup_paths,
+    )
 
     if (config.THUMBOR_LOG_CONFIG and config.THUMBOR_LOG_CONFIG != '') :
       logging.config.dictConfig(config.THUMBOR_LOG_CONFIG)
@@ -70,7 +75,15 @@ def main(arguments=None):
         if server_parameters.gifsicle_path is None:
             raise RuntimeError('If using USE_GIFSICLE_ENGINE configuration to True, the `gifsicle` binary must be in the PATH and must be an executable.')
 
-    context = Context(server=server_parameters, config=config, importer=importer)
+    thread_pool = ThreadPoolExecutor(config.ENGINE_THREADPOOL_SIZE)
+
+    context = Context(
+        server=server_parameters,
+        config=config,
+        importer=importer,
+        thread_pool=thread_pool
+    )
+
 
     application = importer.import_class(server_parameters.app_class)(context)
 
@@ -93,7 +106,9 @@ def main(arguments=None):
 
     try:
         logging.debug('thumbor running at %s:%d' % (context.server.ip, context.server.port))
-        tornado.ioloop.IOLoop.instance().start()
+        loop = tornado.ioloop.IOLoop.instance()
+        loop.set_blocking_log_threshold(.5)
+        loop.start()
     except KeyboardInterrupt:
         print
         print "-- thumbor closed by user interruption --"

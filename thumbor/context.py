@@ -48,7 +48,7 @@ class Context:
     Each instance of this class MUST be unique per request. This class should not be cached in the server.
     '''
 
-    def __init__(self, server=None, config=None, importer=None, request_handler=None):
+    def __init__(self, server=None, config=None, importer=None, request_handler=None, thread_pool=None):
         self.server = server
         self.config = config
         if importer:
@@ -58,7 +58,7 @@ class Context:
         self.filters_factory = FiltersFactory(self.modules.filters if self.modules else [])
         self.request_handler = request_handler
         self.statsd_client = ThumborStatsClient(config)
-
+        self.thread_pool = thread_pool
 
 
 class ServerParameters(object):
